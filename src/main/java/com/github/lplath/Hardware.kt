@@ -49,7 +49,9 @@ class Hardware(
 		portIn.setMidiCallback(mapping)
 		portIn.setSysexCallback(this)
 
-		portOut.sendSysex(Memory.DeviceMemory)
+		for (line in Memory.DeviceMemory) {
+			portOut.sendSysex(line)
+		}
 
 		val padVelocitySettings = host.preferences.getEnumSetting(
 			"Pads",

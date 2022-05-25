@@ -41,7 +41,9 @@ class Mapping(private val host: ControllerHost) : ShortMidiDataReceivedCallback 
 
 	override fun midiReceived(status: Int, data1: Int, data2: Int) {
 		if (Midi.isCC(status)) {
+			host.println("CC at note: $data1")
 			valueChangedCallbacks[data1]?.invoke((data2 - 64) * KNOB_INCREMENT)
+
 		} else if (Midi.isNoteDown(status)) {
 			noteDownCallbacks[data1]?.invoke()
 
