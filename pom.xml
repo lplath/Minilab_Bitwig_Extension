@@ -9,7 +9,7 @@
     <version>0.1</version>
 
     <properties>
-        <kotlin.version>1.6.21</kotlin.version>
+        <kotlin.version>1.6.10</kotlin.version>
         <extension-directory>${user.home}/Documents/Bitwig Studio/Extensions</extension-directory>
     </properties>
 
