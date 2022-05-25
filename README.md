@@ -1,6 +1,6 @@
 # Minilab V2
-![Minilab](https://medias.arturia.net/images/products/minilab/minilab-image.png "Minilab")
 Arturia Minilab support for Bitwig Studio
+![Minilab](https://medias.arturia.net/images/products/minilab/minilab-image.png "Minilab")
 
 This is currently a port of the [Javascript-version](https://github.com/lplath/Arturia_MiniLab_Bitwig) with the intention of adding more features.
 
