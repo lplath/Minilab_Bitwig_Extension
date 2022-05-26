@@ -16,6 +16,12 @@ class ArturiaMinilabExtensionDefinition : ControllerExtensionDefinition() {
 	override fun getRequiredAPIVersion() = 10
 	override fun getNumMidiInPorts() = 1
 	override fun getNumMidiOutPorts() = 1
-	override fun listAutoDetectionMidiPortNames(list: AutoDetectionMidiPortNamesList, platformType: PlatformType) {}
+	override fun listAutoDetectionMidiPortNames(list: AutoDetectionMidiPortNamesList, platformType: PlatformType) {
+		when (platformType) {
+			PlatformType.WINDOWS -> list.add(arrayOf("Arturia MINILAB"), arrayOf("Arturia MINILAB"))
+			PlatformType.MAC -> list.add(arrayOf("Arturia MINILAB"), arrayOf("Arturia MINILAB"))
+			PlatformType.LINUX -> list.add(arrayOf("Arturia MINILAB MIDI 1"), arrayOf("Arturia MINILAB MIDI 1"))
+		}
+	}
 	override fun createInstance(host: ControllerHost): ArturiaMinilabExtension = ArturiaMinilabExtension(this, host)
 }
