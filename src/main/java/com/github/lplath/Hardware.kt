@@ -31,7 +31,7 @@ class Hardware(private val host: ControllerHost) : SysexMidiDataReceivedCallback
 
     var isOctaveDownPressed = false
     var isOctaveUpPressed = false
-    var isPadPressed = Array(8) { false }
+    var isPadPressed = Array(16) { false }
 
     init {
         keyboard.setShouldConsumeEvents(true)
@@ -131,7 +131,7 @@ class Hardware(private val host: ControllerHost) : SysexMidiDataReceivedCallback
     }
 
     override fun midiReceived(status: Int, data1: Int, data2: Int) {
-        //host.println("status: $status, data1: $data1, data2: $data2")
+        host.println("status: $status, data1: $data1, data2: $data2")
 
         //TODO: Fix issue when UP + DOWN is pressed, and the second up is registered, so that the page advances
         if (Midi.isCC(status)) {
@@ -160,8 +160,8 @@ class Hardware(private val host: ControllerHost) : SysexMidiDataReceivedCallback
 
             // else is important, because CC messages are also note-down
         } else if (Midi.isNoteDown(status)) {
-            if (data1 in Mapping.PADS_MACRO) {
-                isPadPressed[Mapping.PADS_MACRO.indexOf(data1)] = true
+            if (data1 in Mapping.PADS_MACRO + Mapping.PADS_CLIPS + Mapping.PAD_CLIP_DOWN + Mapping.PAD_CLIP_UP) {
+                isPadPressed[data1 - Mapping.PADS_MACRO.first()] = true
             }
 
             noteDownCallbacks[data1]?.invoke()
@@ -169,8 +169,8 @@ class Hardware(private val host: ControllerHost) : SysexMidiDataReceivedCallback
             noteUpCallbacks[data1]?.invoke()
 
             // Resetting the pad needs to be done last!
-            if (data1 in Mapping.PADS_MACRO) {
-                isPadPressed[Mapping.PADS_MACRO.indexOf(data1)] = false
+            if (data1 in Mapping.PADS_MACRO + Mapping.PADS_CLIPS + Mapping.PAD_CLIP_DOWN + Mapping.PAD_CLIP_UP) {
+                isPadPressed[data1 - Mapping.PADS_MACRO.first()] = false
             }
         }
     }
