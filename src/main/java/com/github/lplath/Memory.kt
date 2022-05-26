@@ -4,7 +4,7 @@ import com.bitwig.extension.controller.api.MidiOut
 
 object Memory {
 
-	fun writeReset(port: MidiOut) {
+	fun reset(port: MidiOut) {
 		for (bank in 1..8) {
 			writeTo(port, bank)
 		}

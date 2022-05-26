@@ -4,10 +4,7 @@ import com.bitwig.extension.controller.api.ControllerHost
 import com.github.lplath.Hardware
 import com.github.lplath.Mapping
 
-class TrackHandler(
-    private val host: ControllerHost,
-    private val hardware: Hardware
-) {
+class TrackHandler(private val host: ControllerHost, private val hardware: Hardware) {
     private val cursor = host.createCursorTrack(6, 0)
     private val device = cursor.createCursorDevice()
     private val remote = device.createCursorRemoteControlsPage(8)
