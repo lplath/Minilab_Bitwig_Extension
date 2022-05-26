@@ -7,20 +7,21 @@ import com.github.lplath.handlers.PadHandler
 import com.github.lplath.handlers.TrackHandler
 
 class ArturiaMinilabExtension(definition: ArturiaMinilabExtensionDefinition, host: ControllerHost) :
-    ControllerExtension(definition, host) {
+	ControllerExtension(definition, host) {
 
-    override fun init() {
-        val hardware = Hardware(host)
-        TrackHandler(host, hardware)
-        PadHandler(host, hardware)
-        ClipHandler(host, hardware)
+	override fun init() {
+		val hardware = Hardware(host)
+		TrackHandler(host, hardware)
+		PadHandler(host, hardware)
+		ClipHandler(host, hardware)
 
-        host.println("Minilab Initialized")
-    }
-    override fun exit() {
-        host.println("Minilab Exited")
-    }
+		host.println("Minilab Initialized")
+	}
 
-    override fun flush() {}
+	override fun exit() {
+		host.println("Minilab Exited")
+	}
+
+	override fun flush() {}
 
 }
