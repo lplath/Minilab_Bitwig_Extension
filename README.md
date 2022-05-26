@@ -14,6 +14,7 @@
 - Knob 16 controls the volume
 
 #### Pads
+Press the PAD Button to change between the primary and secondary pads.
 - Primary (1-8): Shift + Pad: Triggers a user macro. The specific macro can be changed in the settings.
 - Secondary (9-16): Shift + Pad 1-6 select the corresponding track in the editor. Pad 7 and 8 scroll the selection bank up or down.
 
