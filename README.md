@@ -1,4 +1,4 @@
-# Arturia Minilab for Bitwig Studio
+# Arturia Minilab Extension for Bitwig Studio
 ![Minilab](https://medias.arturia.net/images/products/minilab/minilab-image.png "Minilab")
 
 ## Mapping
