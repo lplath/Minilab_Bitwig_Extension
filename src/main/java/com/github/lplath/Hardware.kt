@@ -1,7 +1,6 @@
 package com.github.lplath
 
-import com.bitwig.extension.callback.ShortMidiDataReceivedCallback
-import com.bitwig.extension.callback.SysexMidiDataReceivedCallback
+import com.bitwig.extension.callback.*
 import com.bitwig.extension.controller.api.*
 
 class Hardware(private val host: ControllerHost) : SysexMidiDataReceivedCallback, ShortMidiDataReceivedCallback {
@@ -12,184 +11,115 @@ class Hardware(private val host: ControllerHost) : SysexMidiDataReceivedCallback
 	private val portIn = host.getMidiInPort(0)
 	private val portOut = host.getMidiOutPort(0)
 	private val keyboard = portIn.createNoteInput(
-		"MiniLab Keys",
-		"80????",
-		"90????",
-		"B002??",
-		"B007??",
-		"B00B??",
-		"B040??",
-		"C0????",
-		"D0????",
-		"E0????"
+		"Keys", "80????", "90????", "B002??", "B007??", "B00B??", "B040??", "C0????", "D0????", "E0????"
 	)
-	private val pads = portIn.createNoteInput("MiniLab Pads", "?9????")
+	private val pads = portIn.createNoteInput("Pads", "?9????")
 
-	private val noteUpCallbacks: HashMap<Int, () -> Unit> = HashMap()
-	private val noteDownCallbacks: HashMap<Int, () -> Unit> = HashMap()
-	private val valueChangedCallbacks: HashMap<Int, (Double) -> Unit> = HashMap()
+	private val handlers: MutableList<MidiHandler> = mutableListOf()
 
 	var isOctaveDownPressed = false
 	var isOctaveUpPressed = false
-	var isPadPressed = Array(16) { false }
+	var isPadPressed = Array(8) { false }
 
 	init {
 		keyboard.setShouldConsumeEvents(true)
 		pads.setShouldConsumeEvents(false)
 		pads.assignPolyphonicAftertouchToExpression(0, NoteInput.NoteExpression.TIMBRE_UP, 2)
-
 		portIn.setMidiCallback(this)
 		portIn.setSysexCallback(this)
 
-		Memory.reset(portOut)
-
-		val keyVelocitySettings = host.preferences.getEnumSetting(
-			"Keyboard",
-			"Velocity Curve",
-			arrayOf("Linear", "Logarithmic", "Exponential", "Full"),
-			"Linear"
-		)
-		keyVelocitySettings.markInterested()
-		keyVelocitySettings.addValueObserver { value ->
-			when (value) {
-				"Linear" -> setKeyboardVelocityCurve(0)
-				"Logarithmic" -> setKeyboardVelocityCurve(1)
-				"Exponential" -> setKeyboardVelocityCurve(2)
-				"Full" -> setKeyboardVelocityCurve(3)
-				else -> host.errorln("Setting 'Keyboard Velocity Curve' changed to invalid value '$value'")
-			}
-		}
-
-		val pitchBendSettings =
-			host.preferences.getEnumSetting("Pitch Bend", "Mode", arrayOf("Standard", "Hold"), "Standard")
-		pitchBendSettings.markInterested()
-		pitchBendSettings.addValueObserver { value ->
-			when (value) {
-				"Standard" -> setPitchBendMode(0)
-				"Hold" -> setPitchBendMode(1)
-			}
-		}
-	}
-
-	fun onNoteUp(keys: List<Int>, callback: (Int) -> Unit) {
-		for ((index, key) in keys.withIndex()) {
-			if (noteUpCallbacks[key] != null)
-				throw Exception("Cannot listen to $key! Callback is already in use.")
-			else
-				noteUpCallbacks[key] = { callback(index) }
-		}
-	}
-
-	fun onNoteUp(key: Int, callback: (Int) -> Unit) {
-		if (noteUpCallbacks[key] != null)
-			throw Exception("Cannot listen to $key! Callback is already in use.")
-		else
-			noteUpCallbacks[key] = { callback(0) }
-	}
-
-	fun onNoteDown(keys: List<Int>, callback: (Int) -> Unit) {
-		for ((index, key) in keys.withIndex()) {
-			if (noteUpCallbacks[key] != null)
-				throw Exception("Cannot listen to $key! Callback is already in use.")
-			else
-				noteDownCallbacks[key] = { callback(index) }
-		}
-	}
-
-	fun onNoteDown(key: Int, callback: (Int) -> Unit) {
-		if (noteUpCallbacks[key] != null)
-			throw Exception("Cannot listen to $key! Callback is already in use.")
-		else
-			noteDownCallbacks[key] = { callback(0) }
-	}
-
-	fun onValueChanged(knobs: List<Int>, callback: (Int, Double) -> Unit) {
-		for ((index, knob) in knobs.withIndex())
-			if (noteUpCallbacks[knob] != null)
-				throw Exception("Cannot listen to $knob! Callback is already in use.")
-			else
-				valueChangedCallbacks[knob] = { inc -> callback(index, inc) }
-	}
-
-	fun onValueChanged(knob: Int, callback: (Int, Double) -> Unit) {
-		if (noteUpCallbacks[knob] != null)
-			throw Exception("Cannot listen to $knob! Callback is already in use.")
-		else
-			valueChangedCallbacks[knob] = { inc -> callback(0, inc) }
 	}
 
 	fun shiftPads(rootNote: Int) {
 		val table = Array(128) { 0 }
 		for (i in table.indices) {
 			table[i] = ((rootNote - 1) * 12) + i
-			if (table[i] < 0 || table[i] > 127)
-				table[i] = -1
+			if (table[i] < 0 || table[i] > 127) table[i] = -1
 		}
 		pads.setKeyTranslationTable(table)
 	}
 
+	fun addListener(handler: MidiHandler) {
+		handlers.add(handler)
+	}
+
 
 	override fun midiReceived(status: Int, data1: Int, data2: Int) {
-		host.println("status: $status, data1: $data1, data2: $data2")
-
 		if (Midi.isCC(status)) {
-			// Octave buttons don't use Note on/off. Instead, they send velocity 0 = off, 127 = on
-			if (data1 == Mapping.OCTAVE_UP) {
-				if (data2 == 127) {
-					isOctaveUpPressed = true
+			// Octave buttons don't use Note on/off. Instead, they send CC with velocity 0 = off, 127 = on
+			when (data1) {
+				Mapping.OCTAVE_UP -> {
+					when (data2) {
+						0 -> {
+							isOctaveUpPressed = false
+							if (handlers.any { handler -> handler.onNoteUp(Mapping.OCTAVE_UP, 127) })
+								return
+						}
+						127 -> {
+							isOctaveUpPressed = true
+							if (handlers.any { handler -> handler.onNoteDown(Mapping.OCTAVE_UP, 0) })
+								return
+						}
+					}
 				}
-				if (data2 == 0) {
-					noteUpCallbacks[Mapping.OCTAVE_UP]?.invoke()
-					isOctaveUpPressed = false
+				Mapping.OCTAVE_DOWN -> {
+					when (data2) {
+						0 -> {
+							isOctaveDownPressed = false
+							if (handlers.any { handler -> handler.onNoteUp(Mapping.OCTAVE_DOWN, 127) })
+								return
+						}
+						127 -> {
+							isOctaveDownPressed = true
+							if (handlers.any { handler -> handler.onNoteDown(Mapping.OCTAVE_DOWN, 0) })
+								return
+						}
+					}
 				}
 			}
 
-			if (data1 == Mapping.OCTAVE_DOWN) {
-				if (data2 == 127) {
-					isOctaveDownPressed = true
-				}
-				if (data2 == 0) {
-					noteUpCallbacks[Mapping.OCTAVE_DOWN]?.invoke()
-					isOctaveDownPressed = false
-				}
-			}
+			// CC value changed
+			if (handlers.any { handler -> handler.onValueChanged(data1, (data2 - 64) * KNOB_INCREMENT) })
+				return
 
-			valueChangedCallbacks[data1]?.invoke((data2 - 64) * KNOB_INCREMENT)
-
-		// else is important, because CC messages are also note-down events
+			// else is important, because CC messages are also note-down events
 		} else if (Midi.isNoteDown(status)) {
-			if (data1 in Mapping.PADS_MACRO + Mapping.PADS_CLIPS + Mapping.PAD_CLIP_DOWN + Mapping.PAD_CLIP_UP) {
-				isPadPressed[data1 - Mapping.PADS_MACRO.first()] = true
-			}
+			if (data1 in Mapping.PAD_MACRO_START..Mapping.PAD_MACRO_END)
+				isPadPressed[data1 - Mapping.PAD_MACRO_START] = true
 
-			noteDownCallbacks[data1]?.invoke()
+			if (handlers.any { handler -> handler.onNoteDown(data1, data2) })
+				return
+
 		} else if (Midi.isNoteUp(status)) {
-			noteUpCallbacks[data1]?.invoke()
+			val handled = handlers.any { handler -> handler.onNoteUp(data1, data2) }
 
-			// Resetting the pad needs to be done last!
-			if (data1 in Mapping.PADS_MACRO + Mapping.PADS_CLIPS + Mapping.PAD_CLIP_DOWN + Mapping.PAD_CLIP_UP) {
-				isPadPressed[data1 - Mapping.PADS_MACRO.first()] = false
-			}
+			if (data1 in Mapping.PAD_MACRO_START..Mapping.PAD_MACRO_END)
+				isPadPressed[data1 - Mapping.PAD_MACRO_START] = false
+
+			if (handled) return
 		}
+
+		//host.println("[INFO] Unhandled midi event: (status: $status, data1: $data1, data2: $data2)")
 	}
 
-	fun setPadVelocityCurve(value: Int) {
-		portOut.sendSysex("F0 00 20 6B 7F 42 02 00 41 03 0$value F7")
-	}
-
-	fun setKeyboardVelocityCurve(value: Int) {
-		portOut.sendSysex("F0 00 20 6B 7F 42 02 00 41 01 0$value F7")
-	}
-
-	fun setKnobAcceleration(value: Int) {
-		portOut.sendSysex("F0 00 20 6B 7F 42 02 00 41 04 0$value F7")
-	}
-
-	fun setPitchBendMode(value: Int) {
-		portOut.sendSysex("F0 00 20 6B 7F 42 02 00 06 41 0$value F7")
-	}
 
 	override fun sysexDataReceived(data: String?) {
-		host.println("Sysex data received: $data")
+		if (data != null)
+			host.println("[INFO] Sysex data received: $data")
 	}
+
+	fun writeMemory() {
+		host.println("Sending device memory..")
+		portOut.sendSysex(Memory.DeviceMemory)
+		host.println("Done")
+	}
+
+	fun setPadVelocityCurve(value: Int) = portOut.sendSysex("F000206B7F42020041030${value}F7")
+
+	fun setKeyboardVelocityCurve(value: Int) = portOut.sendSysex("F000206B7F42020041010${value}F7")
+
+	fun setKnobAcceleration(value: Int) = portOut.sendSysex("F000206B7F42020041040${value}F7")
+
+	fun setPitchBendMode(value: Int) = portOut.sendSysex("F000206B7F42020006410${value}F7")
+
 }
