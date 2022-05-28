@@ -19,12 +19,12 @@ Press the "Pad 1-8, 9-16" Button to change between the primary and secondary pad
 - Secondary (9-16): Shift + Pad 1-6 select the corresponding track in the editor. Pad 7 and 8 scroll the selection bank up or down.
 
 ## Installation
-- Download the the [latest](https://github.com/lplath/Minilab_V2/releases/tag/1.1) release and place the .bwextension file into the following location:
+1. Download the the [latest](https://github.com/lplath/Minilab_V2/releases/tag/1.1) release and place the .bwextension file into the following location:
    - macOS
    `Documents/Bitwig Studio/Extensions`
    - Windows
    `%USERPROFILE%\Documents\Bitwig Studio\Extensions`
    - Linux
    `~/Bitwig Studio/Extensions`
-- Update the device mapping by going to Settings > Device > Reset. This only needs to be done once.
-- Select the 8th memory slot by selecting Pad 9-16 and then pressing Shift + Pad 8. 
+2. Update the device mapping by going to Settings > Device > Reset. This only needs to be done once.
+3. Select the 8th memory slot by selecting Pad 9-16 and then pressing Shift + Pad 8. 
