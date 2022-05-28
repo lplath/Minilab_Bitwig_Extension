@@ -27,4 +27,4 @@ Press the "Pad 1-8, 9-16" Button to change between the primary and secondary pad
    - Linux
    `~/Bitwig Studio/Extensions`
 2. Update the device mapping by going to `Settings > Device > Reset`. This only needs to be done once.
-3. Select the 8th memory slot by selecting Pad 9-16 and then pressing Shift + Pad 8. 
+3. Select the correct memory slot by selecting Pad 9-16 and then pressing Shift + Pad 8. 
