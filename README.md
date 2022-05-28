@@ -10,4 +10,4 @@
    - Linux
    `~/Bitwig Studio/Extensions`
 2. Update the device mapping by going to `Settings > Device > Reset`. This only needs to be done once.
-3. Select the correct memory slot by selecting Pad 9-16 and then pressing Shift + Pad 8. 
+3. Select the correct memory slot by selecting the Pad 9-16 button and then pressing Shift + Pad 8. 
