@@ -5,8 +5,9 @@ import com.github.lplath.Hardware
 import com.github.lplath.Mapping
 import com.github.lplath.MidiHandler
 
-class PadHandler(private val host: ControllerHost, private val hardware: Hardware): MidiHandler() {
-	private val transport: Transport = host.createTransport()
+class PadHandler(host: ControllerHost, private val hardware: Hardware): MidiHandler() {
+	private val transport= host.createTransport()
+	private val application = host.createApplication()
 	private val assignedMacros = MutableList(8) { "Unassigned" }
 	private val macros = mapOf(
 		"Unassigned" to {},
@@ -33,7 +34,21 @@ class PadHandler(private val host: ControllerHost, private val hardware: Hardwar
 		"Launch From Play-Start Position" to { transport.launchFromPlayStartPosition() },
 		"Jump To Play-Start Position" to { transport.jumpToPlayStartPosition() },
 		"Jump To Previous Cue-Marker" to { transport.jumpToPreviousCueMarker() },
-		"Jump To Next Cue-Marker" to { transport.jumpToNextCueMarker() }
+		"Jump To Next Cue-Marker" to { transport.jumpToNextCueMarker() },
+		"Undo" to { application.undo() },
+		"Redo" to { application.redo() },
+		"Toggle Inspector" to { application.toggleInspector() },
+		"Toggle Devices" to { application.toggleDevices() },
+		"Toggle Mixer" to { application.toggleMixer() },
+		"Toggle Note-Editor" to { application.toggleNoteEditor() },
+		"Toggle Automation-Editor" to { application.toggleAutomationEditor() },
+		"Toggle Browser" to { application.toggleBrowserVisibility() },
+		"Zoom In" to { application.zoomIn() },
+		"Zoom Out" to { application.zoomOut() },
+		"Zoom To Selection" to { application.zoomToSelection() },
+		"Zoom To Fit" to { application.zoomToFit() },
+		"Create Empty Audio Track" to { application.createAudioTrack(-1) },
+		"Create Empty Instrument Track" to { application.createInstrumentTrack(-1) }
 	)
 
 	init {
