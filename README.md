@@ -2,7 +2,7 @@
 ![Minilab](https://github.com/lplath/Minilab_Bitwig_Extension/blob/master/mapping.jpg)
 
 ## Installation
-1. Download the the [latest](https://github.com/lplath/Minilab_V2/releases/tag/1.1) release and place the .bwextension file into the following location:
+1. Download the the [latest](https://github.com/lplath/Minilab_V2/releases/tag/1.2) release and place the .bwextension file into the following location:
    - macOS
    `Documents/Bitwig Studio/Extensions`
    - Windows
